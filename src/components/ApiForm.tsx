@@ -1,4 +1,3 @@
-// src/components/ApiForm.tsx
 import React, { useState, useEffect } from 'react';
 
 interface ApiFormProps {
@@ -122,9 +121,9 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
 
   const renderCellData = (data: any) => {
     if (typeof data === 'object' && data !== null) {
-      return JSON.stringify(data); // Convert object to string
+      return JSON.stringify(data);
     }
-    return data; // Render as is for strings, numbers, etc.
+    return data;
   };
 
   return (
