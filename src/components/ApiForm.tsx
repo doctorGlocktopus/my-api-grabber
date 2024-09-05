@@ -59,16 +59,23 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
   };
 
   const exportData = () => {
-    fetch('http://localhost:3001/api/exportCsv', {
+    const exportRequest = {
+      url: url,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         columns: Object.keys(apiData[0] || {}),
-        data: apiData,
+        url: url,
+        apiKeys: {},
+        filters: {},
+        // pagination: { page: 1, size: 100 },
+        // sort: { column: 'name', direction: 'asc' }
       }),
-    })
+    };
+  
+    fetch('http://localhost:3001/api/exportCsv', exportRequest)
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         return response.blob();
@@ -86,6 +93,7 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
         alert('Error exporting data');
       });
   };
+  
 
   const addApiKey = () => setApiKeys([...apiKeys, { key: '', value: '' }]);
 
