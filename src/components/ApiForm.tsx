@@ -12,7 +12,6 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
   const [allColumns, setAllColumns] = useState<Record<string, boolean>>({});
   const [excludedColumns, setExcludedColumns] = useState<Record<string, boolean>>({});
 
-
   useEffect(() => {
     if (data.length > 0) {
       const columns = Object.keys(data[0]);
@@ -71,11 +70,9 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
         excludedColumns: excludedColumns,
         apiKeys: {},
         filters: {},
-        // pagination: { page: 1, size: 100 },
-        // sort: { column: 'name', direction: 'asc' }
       }),
     };
-  
+
     fetch('http://localhost:3001/api/exportCsv', exportRequest)
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -86,6 +83,40 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
         const a = document.createElement('a');
         a.href = url;
         a.download = 'data.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(error => {
+        console.error('Error exporting data:', error);
+        alert('Error exporting data');
+      });
+  };
+
+  const exportPdf = () => {
+    const exportRequest = {
+      url: url,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        columns: Object.keys(apiData[0] || {}),
+        url: url,
+        excludedColumns: excludedColumns,
+        apiKeys: [],
+      }),
+    };
+
+    fetch('http://localhost:3001/api/exportPdf', exportRequest)
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        return response.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'data.pdf';
         a.click();
         window.URL.revokeObjectURL(url);
       })
@@ -155,7 +186,8 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
       <div>
         <button onClick={addApiKey}>Add API Key</button>
         <button onClick={fetchData}>Fetch Data</button>
-        <button onClick={exportData}>Export Data</button>
+        <button onClick={exportData}>Export Data (CSV)</button>
+        <button onClick={exportPdf}>Export Data (PDF)</button>
         <button onClick={invertAllSelections}>Invert Selection</button>
       </div>
       {Object.keys(allColumns).length > 0 && (
