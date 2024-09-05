@@ -10,6 +10,8 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
   const [url, setUrl] = useState('https://v2.jokeapi.dev/joke/Any?lang=de');
   const [apiKeys, setApiKeys] = useState<{ key: string; value: string }[]>([{ key: '', value: '' }]);
   const [allColumns, setAllColumns] = useState<Record<string, boolean>>({});
+  const [excludedColumns, setExcludedColumns] = useState<Record<string, boolean>>({});
+
 
   useEffect(() => {
     if (data.length > 0) {
@@ -24,11 +26,10 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
 
   const fetchData = async () => {
     try {
-      // Typisiere das Objekt als Record<string, string>
       const headers: Record<string, string> = apiKeys.reduce((acc, { key, value }) => {
         if (key && value) acc[key] = value;
         return acc;
-      }, {} as Record<string, string>); // Setze den Typ hier
+      }, {} as Record<string, string>);
 
       const response = await fetch(url, { method: 'GET', headers });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -67,6 +68,7 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
       body: JSON.stringify({
         columns: Object.keys(apiData[0] || {}),
         url: url,
+        excludedColumns: excludedColumns,
         apiKeys: {},
         filters: {},
         // pagination: { page: 1, size: 100 },
@@ -92,7 +94,6 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
         alert('Error exporting data');
       });
   };
-  
 
   const addApiKey = () => setApiKeys([...apiKeys, { key: '', value: '' }]);
 
@@ -115,6 +116,7 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
       Object.keys(newColumns).forEach(column => {
         newColumns[column] = !newColumns[column];
       });
+      setExcludedColumns(newColumns)
       return newColumns;
     });
   };
