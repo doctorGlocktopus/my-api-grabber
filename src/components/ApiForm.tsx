@@ -11,6 +11,7 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
   const [apiKeys, setApiKeys] = useState<{ key: string; value: string }[]>([{ key: '', value: '' }]);
   const [allColumns, setAllColumns] = useState<Record<string, boolean>>({});
   const [excludedColumns, setExcludedColumns] = useState<Record<string, boolean>>({});
+  const [exportMenue, setExportMenue] = useState(false);
 
   useEffect(() => {
     if (data.length > 0) {
@@ -43,7 +44,7 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
 
       setApiData(Array.isArray(fetchedData) ? fetchedData : [fetchedData]);
 
-      const columns = Object.keys(fetchedData);
+      const columns = Object.keys(fetchedData[0] || {});
       const columnsObject = columns.reduce<Record<string, boolean>>((acc, column) => {
         acc[column] = true;
         return acc;
@@ -57,7 +58,7 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
     }
   };
 
-  const exportData = () => {
+  const exportData = (fileFormat: string) => {
     const exportRequest = {
       url: url,
       method: 'POST',
@@ -73,7 +74,8 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
       }),
     };
 
-    fetch('http://localhost:3001/api/exportCsv', exportRequest)
+    const endpoint = fileFormat === 'PDF' ? 'exportPdf' : 'exportCsv';
+    fetch(`http://localhost:3001/api/${endpoint}`, exportRequest)
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         return response.blob();
@@ -82,41 +84,7 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'data.csv';
-        a.click();
-        window.URL.revokeObjectURL(url);
-      })
-      .catch(error => {
-        console.error('Error exporting data:', error);
-        alert('Error exporting data');
-      });
-  };
-
-  const exportPdf = () => {
-    const exportRequest = {
-      url: url,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        columns: Object.keys(apiData[0] || {}),
-        url: url,
-        excludedColumns: excludedColumns,
-        apiKeys: [],
-      }),
-    };
-
-    fetch('http://localhost:3001/api/exportPdf', exportRequest)
-      .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        return response.blob();
-      })
-      .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'data.pdf';
+        a.download = `data.${fileFormat.toLowerCase()}`;
         a.click();
         window.URL.revokeObjectURL(url);
       })
@@ -147,7 +115,7 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
       Object.keys(newColumns).forEach(column => {
         newColumns[column] = !newColumns[column];
       });
-      setExcludedColumns(newColumns)
+      setExcludedColumns(newColumns);
       return newColumns;
     });
   };
@@ -183,11 +151,19 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
           />
         </div>
       ))}
-      <div>
+      <div onMouseLeave={() => setExportMenue(false)}>
         <button onClick={addApiKey}>Add API Key</button>
         <button onClick={fetchData}>Fetch Data</button>
-        <button onClick={exportData}>Export Data (CSV)</button>
-        <button onClick={exportPdf}>Export Data (PDF)</button>
+        <button onClick={() => exportData('CSV')} onMouseEnter={() => setExportMenue(!exportMenue)}>
+          Export Data (CSV)
+        </button>
+        {exportMenue && (
+          <>
+            <button onClick={() => exportData('PDF')}>PDF</button>
+            <button onClick={() => exportData('CSV')}>CSV</button>
+            <button onClick={() => exportData('JPG')}>JPG</button>
+          </>
+        )}
         <button onClick={invertAllSelections}>Invert Selection</button>
       </div>
       {Object.keys(allColumns).length > 0 && (
