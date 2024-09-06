@@ -11,7 +11,7 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
   const [apiKeys, setApiKeys] = useState<{ key: string; value: string }[]>([{ key: '', value: '' }]);
   const [allColumns, setAllColumns] = useState<Record<string, boolean>>({});
   const [excludedColumns, setExcludedColumns] = useState<Record<string, boolean>>({});
-  const [exportMenue, setExportMenue] = useState(false);
+  const [endpoint, setEndpoint] = useState(false);
 
   useEffect(() => {
     if (data.length > 0) {
@@ -74,7 +74,6 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
       }),
     };
 
-    const endpoint = fileFormat === 'PDF' ? 'exportPdf' : 'exportCsv';
     fetch(`http://localhost:3001/api/${endpoint}`, exportRequest)
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -151,13 +150,13 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
           />
         </div>
       ))}
-      <div onMouseLeave={() => setExportMenue(false)}>
+      <div onMouseLeave={() => setEndpoint(false)}>
         <button onClick={addApiKey}>Add API Key</button>
         <button onClick={fetchData}>Fetch Data</button>
-        <button onClick={() => exportData('CSV')} onMouseEnter={() => setExportMenue(!exportMenue)}>
+        <button onClick={() => exportData('CSV')} onMouseEnter={() => setEndpoint(!endpoint)}>
           Export Data (CSV)
         </button>
-        {exportMenue && (
+        {endpoint && (
           <>
             <button onClick={() => exportData('PDF')}>PDF</button>
             <button onClick={() => exportData('CSV')}>CSV</button>
