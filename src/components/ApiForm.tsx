@@ -31,33 +31,37 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
         if (key && value) acc[key] = value;
         return acc;
       }, {} as Record<string, string>);
-
+  
       const response = await fetch(url, { method: 'GET', headers });
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
       const textResponse = await response.text();
-      let fetchedData: any[];
+      let fetchedData: any;
+  
       try {
         fetchedData = JSON.parse(textResponse);
       } catch {
-        throw new Error('Invalid JSON response');
+        fetchedData = {};
       }
 
-      setApiData(Array.isArray(fetchedData) ? fetchedData : [fetchedData]);
-
-      const columns = Object.keys(fetchedData[0] || {});
+      if (fetchedData.joke) {
+        setApiData([fetchedData]);
+      } else {
+        setApiData([]);
+      }
+  
+      const columns = Object.keys(fetchedData || {});
       const columnsObject = columns.reduce<Record<string, boolean>>((acc, column) => {
         acc[column] = true;
         return acc;
       }, {});
-
+  
       setAllColumns(columnsObject);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Error fetching data', error);
-      alert(`Error fetching data: ${errorMessage}`);
+      console.error('Error fetching data:', error);
+      alert('Error fetching data');
     }
   };
+  
+  
 
   const exportData = (fileFormat: string) => {
     const exportRequest = {
@@ -122,6 +126,8 @@ console.log(endpoint)
   };
 
   const renderCellData = (data: any) => {
+
+    // console.log(data, typeof data)
     if (typeof data === 'object' && data !== null) {
       return JSON.stringify(data);
     }
@@ -136,6 +142,7 @@ console.log(endpoint)
         value={url}
         onChange={(e) => setUrl(e.target.value)}
       />
+      {/* API Key Inputs */}
       {apiKeys.map((apiKey, index) => (
         <div key={index}>
           <input
@@ -152,23 +159,25 @@ console.log(endpoint)
           />
         </div>
       ))}
+      {/* Buttons */}
       <div onMouseLeave={() => setExportMenue(false)}>
         <button onClick={addApiKey}>Add API Key</button>
         <button onClick={fetchData}>Fetch Data</button>
         <button onClick={() => exportData(endpoint)} onMouseEnter={() => setExportMenue(!exportMenue)}>
           Export Data ({endpoint})
         </button>
-        {exportMenue && (
-          <>
-            <button onMouseEnter={() => setEndpoint('PDF')} onClick={() => exportData('PDF')}>PDF</button>
-            <button onMouseEnter={() => setEndpoint('CSV')} onClick={() => exportData('CSV')}>CSV</button>
-            <button onMouseEnter={() => setEndpoint('JPG')} onClick={() => exportData('JPG')}>JPG</button>
-            <button onMouseEnter={() => setEndpoint('PNG')} onClick={() => exportData('PNG')}>PNG</button>
-            <button onMouseEnter={() => setEndpoint('JSON')} onClick={() => exportData('JSON')}>JSON</button>
-          </>
-        )}
+          {exportMenue && (
+            <>
+              <button onMouseEnter={() => setEndpoint('PDF')} onClick={() => exportData('PDF')}>PDF</button>
+              <button onMouseEnter={() => setEndpoint('CSV')} onClick={() => exportData('CSV')}>CSV</button>
+              <button onMouseEnter={() => setEndpoint('JPG')} onClick={() => exportData('JPG')}>JPG</button>
+              <button onMouseEnter={() => setEndpoint('PNG')} onClick={() => exportData('PNG')}>PNG</button>
+              <button onMouseEnter={() => setEndpoint('JSON')} onClick={() => exportData('JSON')}>JSON</button>
+            </>
+          )}
         <button onClick={invertAllSelections}>Invert Selection</button>
       </div>
+      {/* Column Visibility */}
       {Object.keys(allColumns).length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
           <h3>Column Visibility</h3>
@@ -186,6 +195,7 @@ console.log(endpoint)
           ))}
         </div>
       )}
+      {/* Data Table */}
       {apiData.length > 0 && (
         <table>
           <thead>
@@ -201,7 +211,7 @@ console.log(endpoint)
                 {Object.keys(allColumns).map(column =>
                   allColumns[column] ? (
                     <td key={column}>
-                      {renderCellData(item[column])}
+                      {typeof Object.values(item[column]) === 'object' ? renderCellData(item[column]) : renderCellData(item)}
                     </td>
                   ) : null
                 )}
@@ -212,6 +222,7 @@ console.log(endpoint)
       )}
     </div>
   );
+  
 };
 
 export default ApiForm;
