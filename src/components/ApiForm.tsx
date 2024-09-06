@@ -11,7 +11,8 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
   const [apiKeys, setApiKeys] = useState<{ key: string; value: string }[]>([{ key: '', value: '' }]);
   const [allColumns, setAllColumns] = useState<Record<string, boolean>>({});
   const [excludedColumns, setExcludedColumns] = useState<Record<string, boolean>>({});
-  const [endpoint, setEndpoint] = useState(false);
+  const [exportMenue, setExportMenue] = useState(false);
+  const [endpoint, setEndpoint] = useState("CSV");
 
   useEffect(() => {
     if (data.length > 0) {
@@ -73,7 +74,8 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
         filters: {},
       }),
     };
-
+    setEndpoint(fileFormat)
+console.log(endpoint)
     fetch(`http://localhost:3001/api/${endpoint}`, exportRequest)
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -150,17 +152,19 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
           />
         </div>
       ))}
-      <div onMouseLeave={() => setEndpoint(false)}>
+      <div onMouseLeave={() => setExportMenue(false)}>
         <button onClick={addApiKey}>Add API Key</button>
         <button onClick={fetchData}>Fetch Data</button>
-        <button onClick={() => exportData('CSV')} onMouseEnter={() => setEndpoint(!endpoint)}>
-          Export Data (CSV)
+        <button onClick={() => exportData(endpoint)} onMouseEnter={() => setExportMenue(!exportMenue)}>
+          Export Data ({endpoint})
         </button>
-        {endpoint && (
+        {exportMenue && (
           <>
-            <button onClick={() => exportData('PDF')}>PDF</button>
-            <button onClick={() => exportData('CSV')}>CSV</button>
-            <button onClick={() => exportData('JPG')}>JPG</button>
+            <button onMouseEnter={() => setEndpoint('PDF')} onClick={() => exportData('PDF')}>PDF</button>
+            <button onMouseEnter={() => setEndpoint('CSV')} onClick={() => exportData('CSV')}>CSV</button>
+            <button onMouseEnter={() => setEndpoint('JPG')} onClick={() => exportData('JPG')}>JPG</button>
+            <button onMouseEnter={() => setEndpoint('PNG')} onClick={() => exportData('PNG')}>PNG</button>
+            <button onMouseEnter={() => setEndpoint('JSON')} onClick={() => exportData('JSON')}>JSON</button>
           </>
         )}
         <button onClick={invertAllSelections}>Invert Selection</button>
