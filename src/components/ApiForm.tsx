@@ -80,7 +80,16 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
     };
     setEndpoint(fileFormat)
 
-    fetch(`http://localhost:3001/api/${endpoint}`, exportRequest)
+
+    const endpointMap: { [key: string]: string } = {
+      "PDF": "exportPdf",
+      "CSV": "exportCsv",
+      "JPG": "exportJpg",
+      "PNG": "exportPng",
+      "JSON": "exportJson"
+    };
+
+    fetch(`http://localhost:3001/api/${endpointMap[endpoint]}`, exportRequest)
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         return response.blob();
@@ -126,7 +135,6 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
   };
 
   const renderCellData = (data: any) => {
-    console.log(data)
     if (typeof data === 'object' && data !== null) {
       return Object.entries(data).map(([key, value]) => (
         <div key={key}>{`${key}: ${value}`}</div>
