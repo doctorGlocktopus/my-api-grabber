@@ -79,7 +79,7 @@ const ApiForm: React.FC<ApiFormProps> = ({ setApiData, apiData, data }) => {
       }),
     };
     setEndpoint(fileFormat)
-console.log(endpoint)
+
     fetch(`http://localhost:3001/api/${endpoint}`, exportRequest)
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -126,10 +126,11 @@ console.log(endpoint)
   };
 
   const renderCellData = (data: any) => {
-
-    // console.log(data, typeof data)
+    console.log(data)
     if (typeof data === 'object' && data !== null) {
-      return JSON.stringify(data);
+      return Object.entries(data).map(([key, value]) => (
+        <div key={key}>{`${key}: ${value}`}</div>
+      ));
     }
     return data;
   };
@@ -211,7 +212,7 @@ console.log(endpoint)
                 {Object.keys(allColumns).map(column =>
                   allColumns[column] ? (
                     <td key={column}>
-                      {typeof Object.values(item[column]) === 'object' ? renderCellData(item[column]) : renderCellData(item)}
+                      {typeof item[column] === 'object' ? renderCellData(item) : renderCellData(item[column])}
                     </td>
                   ) : null
                 )}
